@@ -10,7 +10,7 @@ exports.default = function (Vue) {
       var value = _ref2.value;
 
       bindHandler(el, value);
-      updateHandler(el, value, true);
+      if (el.value) updateHandler(el, value, true);
     },
 
     unbind: unbindHandler,
@@ -18,7 +18,6 @@ exports.default = function (Vue) {
       var value = _ref3.value;
       var oldValue = _ref3.oldValue;
 
-      bindHandler(el, value);
       updateHandler(el, value, false);
     }
   });
@@ -63,8 +62,19 @@ function unbindHandler(el) {
 }
 
 function updateHandler(el, mask, pInitial) {
-  if (!el.value) return;
   el.dataset.mask = mask;
+  if (!el.value) return;
   var formated = (0, _format2.default)(el.value, mask);
-  if (el.value.length !== formated && pInitial !== false) el.value = formated;
+  var testLastChar = checkEscapeChar(el.value, formated, mask);
+  if (!testLastChar && formated.length !== mask.length) return false;
+  if (el.value.length !== formated.length || formated.length === mask.length) {
+    el.value = formated;
+  }
+}
+
+function checkEscapeChar(pNowValue, pFormated, pMask) {
+  var maskStartRegExp = /^([^#ANX]+)/;
+  var lastChar = pMask.substr(pNowValue.length - 1, 1);
+  var testChar = maskStartRegExp.test(lastChar);
+  return testChar;
 }
